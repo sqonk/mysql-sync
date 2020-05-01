@@ -57,8 +57,8 @@ Once done, you will be prompted if you wish to apply the changes for real.
 
 ## Credits
 
-Theo Howell
-Oliver Jacobs
+* Theo Howell
+* Oliver Jacobs
  
 ## License
 
