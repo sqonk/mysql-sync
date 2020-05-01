@@ -21,7 +21,7 @@
     },
 	"autoload": {
 		"files": [
-			"sync.php", 
+			"sync.php"
 		]
     }
 }
