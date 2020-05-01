@@ -1,0 +1,22 @@
+{
+	"name": "sqonk/mysql-sync",
+	"description": "MySQL-sync is a simple script written in PHP that can assist and automate the synchronisation of differences in table structures between two database servers.",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Theo Howell",
+            "email": "sqonk@sqonk.com.au"
+        },
+        {
+            "name": "Oliver Jacobs",
+            "email": "oliver.jacobs@carbondata.com.au"
+        }
+    ],
+	"keywords": ["mysql","synchronise","migrate","sync"],
+    "require": {
+		"php": "^7.3",
+        "sqonk/phext-context": "^0.3.1",
+        "php-defer/php-defer": "^5.0"
+    }
+}

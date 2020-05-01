@@ -1,0 +1,14 @@
+{
+	"source" : {
+		"host" : "",
+		"user" : "",
+		"password" : "",
+		"database" : ""
+	},
+	"dest" : {
+		"host" : "",
+		"user" : "",
+		"password" : "",
+		"database" : ""
+	}
+}
