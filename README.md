@@ -22,6 +22,8 @@ Always backup the destination database prior to making any changes, this should 
 
 ## Usage
 
+### Method 1: Using a JSON config file
+
 First duplicate the sample json sync file provided the conf folder, call it something meanginful and enter the database details for both the source and destination databases.
 
 ``` json
@@ -41,11 +43,38 @@ First duplicate the sample json sync file provided the conf folder, call it some
 }
 ```
 
-Then invoke the sync script, passing in the path to your json config.
+Create a new PHP script, load the composer includes and pass your json config accordingly.
 
-``` bash
-$ php sync.php path/to/sync-conf.json
+``` php
+require 'vendor/autoload.php'
+
+mysql_sync_with_conf('/path/to/my/config-file.json');
 ```
+
+### Method 2: Using in-memory PHP array
+
+Create a new PHP script, load the composer includes and pass your config array accordingly.
+
+``` php
+require 'vendor/autoload.php'
+
+mysql_sync([
+	"source" => [
+		"host" => "",
+		"user" => "",
+		"password" => "",
+		"database" => ""
+	],
+	"dest" => [
+		"host" => "",
+		"user" => "",
+		"password" => "",
+		"database" => ""
+	]
+]);
+```
+
+### Process
 
 A dry-run will first be performed and any differences will be displayed, including:
 
