@@ -1,5 +1,4 @@
 <?php
-require 'vendor/autoload.php';
 
 use sqonk\phext\core\{arrays,strings};
 use sqonk\phext\context\context;
@@ -83,20 +82,17 @@ function describe($db)
 	{
 		$tableName = arrays::first($row);
         
-		if ($r = $db->query("DESCRIBE $tableName"))
+		if ($r = $db->query("DESCRIBE `$tableName`"))
 		{
 			$table = [];
 	        foreach ($r as $info) 
 			{
-				$dict = [ $info['Field'], $info['Type'] ];
-				if ($info['Null'] != 'YES')
-					$dict[] = 'NOT NULL';
-				if (! empty($info['Default']))
-					$dict[] = 'DEFAULT '.$info['Default'];
-				if ($info['Extra'])
-					$dict[] = $info['Extra'];
-			
-		        $table[$info['Field']] = implode(' ', $dict);
+				$info['Null'] = $info['Null'] == 'YES' ? '' : 'NOT NULL';
+                if (! empty($info['Default']))
+                    $info['Default'] = 'DEFAULT '.$info['Default'];
+				
+				$table[$info['Field']] = arrays::implode_only(' ', $info, 
+					'Field', 'Type', 'Null', 'Default', 'Extra');
 	        }
 	        $tables[$tableName] = $table;
 		}
@@ -120,7 +116,7 @@ function sync($source, $dest, bool $dryRun)
 	println("\n====== NEW TABLES");
 	foreach ($new as $tblName => $cols) 
 	{
-		$create = $source->query("SHOW CREATE TABLE $tblName");
+		$create = $source->query("SHOW CREATE TABLE `$tblName`");
 		if ($create && $r = $create->fetch_assoc()) 
 		{
 			$newCount++;
@@ -143,7 +139,7 @@ function sync($source, $dest, bool $dryRun)
 	{
 		foreach ($dropped as $tblName => $cols) 
 		{
-		    $drop = "DROP TABLE $tblName";
+		    $drop = "DROP TABLE `$tblName`";
 			if (! $dryRun) {
 				println("dropping $tblName");
 				$dest->query($drop);
@@ -182,7 +178,7 @@ function sync($source, $dest, bool $dryRun)
 	    if (count($alter) > 0) 
 		{
 			$existingCount++;
-	        $command = "ALTER TABLE $tblName \n".trim(implode(",\n", $alter));
+	        $command = "ALTER TABLE `$tblName` \n".trim(implode(",\n", $alter));
 			if (! $dryRun) {
 				println("adjusting $tblName\n");
 				$dest->query($command);
