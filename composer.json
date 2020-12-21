@@ -16,7 +16,7 @@
 	"keywords": ["mysql","synchronise","migrate","sync"],
     "require": {
 		"php": "^7.3 || ^8.0.0",
-        "sqonk/phext-context": "^0.3.9 || ^0.4 || ^1",
+        "sqonk/phext-context": "^0.3.6",
         "php-defer/php-defer": "^5.0"
     },
 	"autoload": {
