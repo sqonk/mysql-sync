@@ -1,0 +1,32 @@
+#!/usr/bin/env php
+<?php
+$paths = [
+    __DIR__ . '/../../autoload.php', 
+    __DIR__ . '/../vendor/autoload.php', 
+    __DIR__ . '/vendor/autoload.php'
+];
+foreach ($paths as $file) {
+    if (file_exists($file)) {
+        $vendor = $file;
+        break;
+    }
+}
+unset($paths, $file);
+
+if (! isset($vendor)) {
+    die("Could not find composer install.\n");
+}
+
+require_once $vendor;
+
+if (count($argv) < 2) {
+    die("You need to specify a json file containing the database configs.\n");
+}
+
+$path = $argv[1] 
+    or die("You need to specify a json file containing the database configs.\n");
+
+if (! file_exists($path))
+    die("Specified config file does not exist at that path.\n");
+
+mysql_sync_with_conf($path);
