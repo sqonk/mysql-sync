@@ -43,12 +43,10 @@ First duplicate the sample json sync file provided the conf folder, call it some
 }
 ```
 
-Create a new PHP script, load the composer includes and pass your json config accordingly.
+Then from your terminal run the following the command:
 
-``` php
-require 'vendor/autoload.php'
-
-mysql_sync_with_conf('/path/to/my/config-file.json');
+``` bash
+vendor/bin/mysql-sync path/to/my/config-file.json
 ```
 
 ### Method 2: Using in-memory PHP array
@@ -88,7 +86,7 @@ Once done, you will be prompted if you wish to apply the changes for real.
 
 * Theo Howell
 * Oliver Jacobs
- 
+
 ## License
 
 The MIT License (MIT). Please see [License File](license.txt) for more information.
