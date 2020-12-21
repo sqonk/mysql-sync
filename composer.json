@@ -23,5 +23,6 @@
 		"files": [
 			"sync.php"
 		]
-    }
+    },
+    "bin": ["bin/mysql-sync"]
 }
