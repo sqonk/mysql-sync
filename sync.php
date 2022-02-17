@@ -8,7 +8,7 @@ use sqonk\phext\context\context;
 function mysql_sync_with_conf(string $filePath)
 {
 	if (! $filePath or ! strings::ends_with($filePath, '.json')) {
-		println("This script should take only 1 arguement, being a json file containing both the source and destination database information. Examine the database.sample.json file for an example.");
+		println("This script should take only 1 argument, being a json file containing both the source and destination database information. Examine the database.sample.json file for an example.");
 		exit;
 	}
 	if (! file_exists($filePath)) {
