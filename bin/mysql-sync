@@ -21,13 +21,13 @@ if (! isset($vendor)) {
 require_once $vendor;
 
 if (count($argv) < 2) {
-    die("You need to specify a json file containing the database configs.\n");
+    die("You need to specify a json file containing the database configs.".PHP_EOL);
 }
 
 $path = $argv[1] 
-    or die("You need to specify a json file containing the database configs.\n");
+    or die("You need to specify a json file containing the database configs.".PHP_EOL);
 
 if (! file_exists($path))
-    die("Specified config file does not exist at that path.\n");
+    die("Specified config file does not exist at that path.".PHP_EOL);
 
 mysql_sync_with_conf($path);
