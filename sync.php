@@ -19,17 +19,16 @@ function mysql_sync_with_conf(string $filePath)
 	mysql_sync(json_decode(file_get_contents($filePath)));
 }
 
-/* 
-	Run a synchronsisation using an in-memory configuration object.
-
-	The object should be in the same structure as the sample json file.
-
-	An array can also be provided, which will be converted to an object
-	internally.
-*/
-function mysql_sync($config)
+/**
+ * Run a synchronisation using an in-memory configuration object.
+ * 
+ * The object should be in the same structure as the sample json file.
+ * 
+ * An array can also be provided, which will be converted to an object internally.
+ */
+function mysql_sync(array|object|null $config): void
 {
-	if (is_array($config))
+	if (is_array($config)) // convert from array format to object.
 		$config = json_decode(json_encode($config));
 	
 	# --- Connect to both databases.
