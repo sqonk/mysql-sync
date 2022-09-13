@@ -56,20 +56,25 @@ function mysql_sync(array|object|null $config): void
 	
 	# ---- Run the sync process, first as a dry run to see what has changed and then ask the user if they want to do it for real.
 	println("Displaying differences..");
-
-	if (sync($source, $dest, true) > 0) 
+    
+    $statements = sync($source, $dest, true);
+	if (getCounts($statements) > 0) 
 	{
 		do {
-			$r = ask("Do you want deploy the changes? (Y/n)");
+			$r = ask("Do you want to deploy the changes to the destination, dump the SQL modification commands to a file or cancel? [D]eploy to destination, [s]ave to file, [c]ancel");
 		}
-		while (! arrays::contains(['Y', 'n'], $r));
+		while (! arrays::contains(['D', 's', 'c'], $r));
 	
-		if ($r == 'Y')
+		if ($r == 'D') {
 			context::mysql_transaction($dest)->do(function($dest) use ($source) {
 				sync($source, $dest, false);
 			});
-		else 
-			println('changes aborted.');
+        }
+        else if ($r == 's') {
+            $out = implode("\n\n", array_map(fn($set) => implode("\n\n", $set), $statements));
+            $now = date('Y-m-d-h-i');
+            file_put_contents(getcwd()."/database_diff-$now.sql", $out);
+        }
 	}
 }
 
@@ -87,8 +92,9 @@ function describe($db): array
 	        foreach ($r as $info) 
 			{
 				$info['Null'] = $info['Null'] == 'YES' ? '' : 'NOT NULL';
-                if (! empty($info['Default']))
-                    $info['Default'] = 'DEFAULT '.$info['Default'];
+                $def = $info['Default'] ?? null;
+                if ($def !== null)
+                    $info['Default'] = "DEFAULT '$def'";
 				
 				$table[$info['Field']] = arrays::implode_only(' ', $info, 
 					'Field', 'Type', 'Null', 'Default', 'Extra');
@@ -99,7 +105,11 @@ function describe($db): array
     return $tables;
 }
 
-function sync($source, $dest, bool $dryRun)
+function getCounts(array $statements): int {
+    return array_sum(array_map(fn($arr) => count($arr), $statements));
+}
+
+function sync($source, $dest, bool $dryRun): array
 {
 	$source_tables = describe($source);
 	$dest_tables = describe($dest);
@@ -107,28 +117,31 @@ function sync($source, $dest, bool $dryRun)
 	$new = array_diff_key($source_tables, $dest_tables);
 	$dropped = array_diff_key($dest_tables, $source_tables);
 	$existing = array_diff_key($source_tables, $new);
-	
-	$newCount = $existingCount = 0;
-	
+		
 	// -- new tables
-	
+    
+    $newStatements = [];
+    $dropStatements = [];
+    $alterStatements = [];
+    	
 	println("\n====== NEW TABLES");
 	foreach ($new as $tblName => $cols) 
 	{
 		$create = $source->query("SHOW CREATE TABLE `$tblName`");
 		if ($create && $r = $create->fetch_assoc()) 
 		{
-			$newCount++;
 			$create = $r["Create Table"];
+            $newStatements[] = $create;
 			if (! $dryRun) {
 				println("creating $tblName");
 				$dest->query($create);
 			}
-			else
-				println("\n$create");
+			else {
+                println("\n$create");
+			}
 		}
 	}
-	if ($newCount == 0) 
+	if (count($newStatements) == 0) 
 		println('There are no new tables.');
 	
 	// -- tables to drop
@@ -139,6 +152,7 @@ function sync($source, $dest, bool $dryRun)
 		foreach ($dropped as $tblName => $cols) 
 		{
 		    $drop = "DROP TABLE `$tblName`";
+            $dropStatements[] = $drop;
 			if (! $dryRun) {
 				println("dropping $tblName");
 				$dest->query($drop);
@@ -176,8 +190,8 @@ function sync($source, $dest, bool $dryRun)
 	    
 	    if (count($alter) > 0) 
 		{
-			$existingCount++;
 	        $command = "ALTER TABLE `$tblName` \n".trim(implode(",\n", $alter));
+            $alterStatements[] = $command;
 			if (! $dryRun) {
 				println("adjusting $tblName\n");
 				$dest->query($command);
@@ -187,10 +201,10 @@ function sync($source, $dest, bool $dryRun)
 	    }
 	}
 	
-	if ($existingCount == 0) 
+	if (count($alterStatements) == 0) 
 		println('There are no changes between existing tables.');
 	
 	println();
-	return $newCount + count($dropped) + $existingCount;
+	return [$newStatements, $dropStatements, $alterStatements];
 }
 
