@@ -73,7 +73,7 @@ function mysql_sync(array|object|null $config): void
 	}
 }
 
-function describe($db) 
+function describe($db): array
 {
     $tables = [];
 	
