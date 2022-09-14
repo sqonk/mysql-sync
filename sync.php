@@ -236,7 +236,7 @@ function sync($source, $dest, bool $dryRun): array
     $dropStatements = [];
     $alterStatements = [];
     	
-	println("\n====== NEW TABLES");
+	println(PHP_EOL."====== NEW TABLES");
 	foreach ($new as $tblName => $cols) 
 	{
 		$create = $source->query("SHOW CREATE TABLE `$tblName`");
@@ -249,7 +249,7 @@ function sync($source, $dest, bool $dryRun): array
 				$dest->query($create);
 			}
 			else {
-                println("\n$create");
+                println(PHP_EOL.$create);
 			}
 		}
 	}
@@ -258,7 +258,7 @@ function sync($source, $dest, bool $dryRun): array
 	
 	// -- tables to drop
 	
-	println("\n===== TABLES TO REMOVE");
+	println(PHP_EOL."===== TABLES TO REMOVE");
 	if (count($dropped) > 0)
 	{
 		foreach ($dropped as $tblName => $cols) 
@@ -270,7 +270,7 @@ function sync($source, $dest, bool $dryRun): array
 				$dest->query($drop);
 			}
 			else
-				println("\n$drop");
+				println(PHP_EOL."$drop");
 		}
 	}
 	
@@ -305,11 +305,11 @@ function sync($source, $dest, bool $dryRun): array
 	        $command = "ALTER TABLE `$tblName` \n".trim(implode(",\n", $alter));
             $alterStatements[] = $command;
 			if (! $dryRun) {
-				println("adjusting $tblName\n");
+				println("adjusting $tblName".PHP_EOL);
 				$dest->query($command);
 			}
 			else
-				println("\n$command");
+				println(PHP_EOL.$command);
 	    }
 	}
 	
