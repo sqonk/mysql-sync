@@ -91,6 +91,42 @@ function mysql_sync_with_conf(string $filePath)
 	mysql_sync(json_decode(file_get_contents($filePath)));
 }
 
+// throw an error if we're missing anything that's needed.
+function assertValidConfig(object $location, string $label): void
+{
+    $required = ['host', 'database'];
+    foreach ($required as $f) {
+        if (! isset($location->{$f}))
+            die("Missing value for $f in $label".PHP_EOL);
+    }
+    
+    if (isset($location->ssh) && ! isset($location->ssh->host)) {
+        die("SSH tunnel is specified for $label, but no host is set.".PHP_EOL);
+    }
+}
+
+function connect(object $location)
+{
+    $port = isset($location->port) ? (int)$location->port : 3306;
+    $destination = "$location->host:$port/$location->database";
+    
+    if (! $user = $location->user) {
+        $user = prompt("User for $destination", allowEmptyReply:false);
+    }
+    if (! $pass = $location->password) {
+        $pass = prompt("Password for $destination:", allowEmptyReply:false);
+    }
+	$con = new mysqli($location->host, $user, $pass, $location->database, $port);
+    
+	if (! $con or $con->connect_error) {
+        $err = "Unable to connect to the MySQL database ($destination)";
+        if (isset($con->connect_error))
+            $err .= " $con->connect_error";
+		die($err.PHP_EOL);
+	}
+    return $con;
+}
+
 /**
  * Run a synchronisation using an in-memory configuration object.
  * 
@@ -102,27 +138,26 @@ function mysql_sync(array|object|null $config): void
 {
 	if (is_array($config)) // convert from array format to object.
 		$config = json_decode(json_encode($config));
+    
+    // validate provided config details.
+    if (! isset($config->source)) {
+        die("Configuration is missing 'source' database options.".PHP_EOL);
+    }
+    if (! isset($config->dest)) {
+        die("Configuration is missing 'dest' database options.".PHP_EOL);
+    }
+    assertValidConfig($config->source, 'source');
+    assertValidConfig($config->dest, 'dest');
 	
 	# --- Connect to both databases.
-	println("\n--Source: {$config->source->user}@{$config->source->host}/{$config->source->database}");
+	println("\n--Source: {$config->source->host}/{$config->source->database}");
 
-	$source = new mysqli($config->source->host, $config->source->user, $config->source->password, $config->source->database);
-	if (! $source or $source->connect_error) {
-		println("Unable to connect to the source MySQL database.");
-		exit;
-	}
+	$source = connect($config->source);
 	run_later ($_, function() use ($source) {
 		if ($source)
             $source->close();
 	});
 
-	println("\n--Dest: {$config->dest->user}@{$config->dest->host}/{$config->dest->database}\n");
-
-	$dest = new mysqli($config->dest->host, $config->dest->user, $config->dest->password, $config->dest->database);
-	if (! $source or $source->connect_error) {
-		println("Unable to connect to the source MySQL database.");
-		exit;
-	}
 	println("\n--Dest: {$config->dest->host}/{$config->dest->database}\n");
     
     $dest = connect($config->dest);
