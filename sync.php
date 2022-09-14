@@ -3,6 +3,78 @@
 use sqonk\phext\core\{arrays,strings};
 use sqonk\phext\context\context;
 
+function run_later(?SplStack &$context, callable $callback): void
+{
+    $context ??= new class() extends SplStack {
+        public function __destruct()
+        {
+            while ($this->count() > 0) {
+                \call_user_func($this->pop());
+            }
+        }
+    };
+
+    $context->push($callback);
+}
+
+ /* Read the user input from the command prompt. Optionally pass a question/prompt to
+ * the user, to be printed before input is read.
+ * 
+ * NOTE: This method is intended for use with the CLI.
+ * 
+ * -- parameters:
+ * @param  $prompt The optional prompt to be displayed to the user prior to reading input.
+ * @param  $newLineAfterPrompt If TRUE, add a new line in after the prompt.
+ * @param  $allowEmptyReply If TRUE, the prompt will continue to cycle until a non-empty answer is provided by the user. White space is trimmed to prevent pseudo empty answers. This option has no affect when using $allowedResponses.
+ * @param $allowedResponses An array of acceptable replies. The prompt will cycle until one of the given replies is received by the user.
+ * 
+ * @return The response from the user in string format.
+ * 
+ * Example:
+ * 
+ * ``` php
+ * $name = prompt('What is your name?');
+ * // Input your name.. e.g. John
+ * println('Hello', $name);
+ * // prints 'Hello John' (or whatever you typed into the input).
+ * ```
+ */
+function prompt(string $prompt = '', bool $newLineAfterPrompt = false, bool $allowEmptyReply = true, array $allowedResponses = []): string
+{
+    $sapi = php_sapi_name();
+    if ($sapi != 'cli')
+        throw new RuntimeException("Attempt to call prompt() from $sapi. It can only be used when run from the command line.");
+    
+    if ($prompt) {
+        $seperator = $newLineAfterPrompt ? PHP_EOL : ' ';
+        if (! str_ends_with(haystack:$prompt, needle:$seperator))
+            $prompt .= $seperator;
+    }
+        
+    $an = '';
+    $fh = fopen("php://stdin", "r");
+    try {
+        while (true)
+        {
+            if ($prompt)
+                echo $prompt;
+        	$an = trim(fgets($fh));
+
+            if (count($allowedResponses) && in_array(needle:$an, haystack:$allowedResponses))
+                break;
+            
+            else if (count($allowedResponses) == 0 && ($allowEmptyReply || $an))
+                break;
+            
+        } 
+    }
+    finally {
+        fclose($fh);
+    }
+    
+	return $an;
+}
+
 
 // Run a synchronisation using a json config file.
 function mysql_sync_with_conf(string $filePath)
@@ -39,8 +111,9 @@ function mysql_sync(array|object|null $config): void
 		println("Unable to connect to the source MySQL database.");
 		exit;
 	}
-	defer ($_, function() use ($source) {
-		$source->close();
+	run_later ($_, function() use ($source) {
+		if ($source)
+            $source->close();
 	});
 
 	println("\n--Dest: {$config->dest->user}@{$config->dest->host}/{$config->dest->database}\n");
@@ -50,8 +123,12 @@ function mysql_sync(array|object|null $config): void
 		println("Unable to connect to the source MySQL database.");
 		exit;
 	}
-	defer ($_, function() use ($dest) {
-		$dest->close();
+	println("\n--Dest: {$config->dest->host}/{$config->dest->database}\n");
+    
+    $dest = connect($config->dest);
+	run_later ($_, function() use ($dest) {
+        if ($dest)
+    		$dest->close();
 	});
 	
 	# ---- Run the sync process, first as a dry run to see what has changed and then ask the user if they want to do it for real.
