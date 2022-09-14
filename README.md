@@ -33,14 +33,14 @@ First duplicate the sample json sync file provided the conf folder, call it some
 		"user" : "",
 		"password" : "",
 		"database" : "",
-        "port" : "3306"
+		"port" : "3306"
 	},
 	"dest" : {
 		"host" : "",
 		"user" : "",
 		"password" : "",
 		"database" : "",
-        "port" : "3306"
+		"port" : "3306"
 	}
 }
 ```
@@ -63,13 +63,15 @@ mysql_sync([
 		"host" => "",
 		"user" => "",
 		"password" => "",
-		"database" => ""
+		"database" => "",
+		"port" : "3306"
 	],
 	"dest" => [
 		"host" => "",
 		"user" => "",
 		"password" => "",
-		"database" => ""
+		"database" => "",
+		"port" : "3306"
 	]
 ]);
 ```
