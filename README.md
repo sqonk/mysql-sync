@@ -32,13 +32,15 @@ First duplicate the sample json sync file provided the conf folder, call it some
 		"host" : "",
 		"user" : "",
 		"password" : "",
-		"database" : ""
+		"database" : "",
+        "port" : "3306"
 	},
 	"dest" : {
 		"host" : "",
 		"user" : "",
 		"password" : "",
-		"database" : ""
+		"database" : "",
+        "port" : "3306"
 	}
 }
 ```
