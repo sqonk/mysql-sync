@@ -172,10 +172,7 @@ function mysql_sync(array|object|null $config): void
     $statements = sync($source, $dest, true);
 	if (getCounts($statements) > 0) 
 	{
-		do {
-			$r = ask("Do you want to deploy the changes to the destination, dump the SQL modification commands to a file or cancel? [D]eploy to destination, [s]ave to file, [c]ancel");
-		}
-		while (! arrays::contains(['D', 's', 'c'], $r));
+		$r = prompt("Do you want to deploy the changes to the destination, dump the SQL modification commands to a file or cancel? [D]eploy to destination, [s]ave to file, [c]ancel", allowedResponses:['D', 's', 'c']);
 	
 		if ($r == 'D') {
 			context::mysql_transaction($dest)->do(function($dest) use ($source) {
