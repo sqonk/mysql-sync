@@ -12,5 +12,6 @@
 		"password" : "",
 		"database" : "",
         "port" : "3306"
-	}
+	},
+    "ignoreColumnWidths" : false
 }

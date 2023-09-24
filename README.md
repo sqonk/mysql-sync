@@ -41,7 +41,8 @@ First duplicate the sample json sync file provided the conf folder, call it some
 		"password" : "",
 		"database" : "",
 		"port" : "3306"
-	}
+	},
+    "ignoreColumnWidths" : false
 }
 ```
 
@@ -72,9 +73,16 @@ mysql_sync([
 		"password" => "",
 		"database" => "",
 		"port" : "3306"
-	]
+	],
+    "ignoreColumnWidths" : false
 ]);
 ```
+
+#### Ignoring Column Widths
+
+If you are in a situation in which the configuration of the destination database differs from that of the source environment in such a way that column widths do not match up then you can set the option `ignoreColumnWidths` to true in the sync configuration.
+
+This will adjust the comparison to ignore column width/length.
 
 ### Process
 
