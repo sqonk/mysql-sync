@@ -1,33 +1,34 @@
 #!/usr/bin/env php
 <?php
 $paths = [
-    __DIR__ . '/../../autoload.php', 
-    __DIR__ . '/../vendor/autoload.php', 
+    __DIR__ . '/../../autoload.php',
+    __DIR__ . '/../vendor/autoload.php',
     __DIR__ . '/../../../autoload.php',
     __DIR__ . '/vendor/autoload.php'
 ];
 foreach ($paths as $file) {
-    if (file_exists($file)) {
-        $vendor = $file;
-        break;
-    }
+  if (file_exists($file)) {
+    $vendor = $file;
+    break;
+  }
 }
 unset($paths, $file);
 
 if (! isset($vendor)) {
-    die("Could not find composer install.\n");
+  die("Could not find composer install.".PHP_EOL);
 }
 
 require_once $vendor;
 
 if (count($argv) < 2) {
-    die("You need to specify a json file containing the database configs.".PHP_EOL);
+  die("You need to specify a json file containing the database configs.".PHP_EOL);
 }
 
-$path = $argv[1] 
+$path = $argv[1]
     or die("You need to specify a json file containing the database configs.".PHP_EOL);
 
-if (! file_exists($path))
-    die("Specified config file does not exist at that path.".PHP_EOL);
+if (! file_exists($path)) {
+  die("Specified config file does not exist at that path.".PHP_EOL);
+}
 
 mysql_sync_with_conf($path);
