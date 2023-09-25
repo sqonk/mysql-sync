@@ -40,9 +40,6 @@ function mysql_sync($config)
     println("Unable to connect to the source MySQL database.");
     exit;
   }
-  defer($_, function () use ($source) {
-    $source->close();
-  });
 
   println("\n--Dest: {$config->dest->user}@{$config->dest->host}/{$config->dest->database}\n");
 
@@ -51,9 +48,6 @@ function mysql_sync($config)
     println("Unable to connect to the source MySQL database.");
     exit;
   }
-  defer($_, function () use ($dest) {
-    $dest->close();
-  });
     
   $ignoreColumnWidths = (bool)$config->ignoreColumnWidths ?? false;
     
