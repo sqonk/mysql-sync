@@ -65,9 +65,9 @@ function mysql_sync($config)
         sync($source, $dest, false, $ignoreColumnWidths);
       });
     } elseif ($r == 's') {
-      $out = implode("\n\n", array_map(fn ($set) => implode("\n\n", $set), $statements));
+      $out = implode("\n\n", array_map(fn ($set) => implode("\n", $set), $statements));
       $now = date('Y-m-d-h-i');
-      file_put_contents(getcwd()."/database_diff-$now.sql", $out);
+      file_put_contents(getcwd()."/database_diff-$now.sql", trim($out));
     }
   }
 }
