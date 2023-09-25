@@ -195,7 +195,9 @@ function sync($source, $dest, bool $dryRun, bool $ignoreColumnWidths): array
         
     if (count($alter) > 0) {
       if ($dryRun) {
-        println("ALTER TABLE `$tblName`");
+        $alterT = "ALTER TABLE `$tblName`";
+        println($alterT);
+        $alterStatements[] = $alterT;
         foreach ($alter as $cmd) {
           $alterStatements[] = $cmd;
           println(trim($cmd));
