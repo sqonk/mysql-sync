@@ -121,8 +121,7 @@ function sync($source, $dest, bool $dryRun, bool $ignoreColumnWidths): array
   $dropped = array_diff_key($dest_tables, $source_tables);
   $existing = array_diff_key($source_tables, $new);
         
-  // -- new tables
-    
+  
   $newStatements = [];
   $dropStatements = [];
   $alterStatements = [];
@@ -145,8 +144,6 @@ function sync($source, $dest, bool $dryRun, bool $ignoreColumnWidths): array
     println('There are no new tables.');
   }
     
-  // -- tables to drop
-    
   println("\n===== TABLES TO REMOVE");
   if (count($dropped) > 0) {
     foreach ($dropped as $tblName => $cols) {
@@ -162,8 +159,6 @@ function sync($source, $dest, bool $dryRun, bool $ignoreColumnWidths): array
   } else {
     println('There are no tables to drop');
   }
-    
-  // -- existing tables to modify
     
   println("\n===== EXISTING TABLES");
   foreach ($existing as $tblName => $master_cols) {
