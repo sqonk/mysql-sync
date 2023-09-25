@@ -205,9 +205,8 @@ function sync($source, $dest, bool $dryRun, bool $ignoreColumnWidths): array
           if ($d) {
             println("\twas: [$d]");
           }
-                    
-          println();
         }
+        println();
                 
         println('-------------');
       } else {
