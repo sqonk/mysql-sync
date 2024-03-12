@@ -23,5 +23,8 @@
 			"sync.php"
 		]
     },
-    "bin": ["bin/mysql-sync"]
+    "bin": ["bin/mysql-sync"],
+	"require-dev": {
+		"phpstan/phpstan": "^1.10"
+	}
 }

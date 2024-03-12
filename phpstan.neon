@@ -1,0 +1,18 @@
+parameters:
+    level: 6
+    reportUnmatchedIgnoredErrors: false
+    
+    fileExtensions:
+      - php
+  
+    paths:
+
+        - sync.php
+        - bin/mysql-sync
+        
+    scanDirectories:
+        - vendor
+        
+    excludePaths:
+        - vendor
+
