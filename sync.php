@@ -171,21 +171,32 @@ function sync($source, $dest, bool $dryRun, bool $ignoreColumnWidths): array
     $alter = [];
         
     foreach ($newCols as $cmd) {
-      $alter[] = "ADD COLUMN $cmd,";
+      $st = "ADD COLUMN $cmd";
+      if ($dryRun) {
+        $st .= ',';
+      }
+      $alter[] = $st;
     }
         
     $previousDesc = [];
     foreach ($existingM as $fn => $descrption) {
       $slaveDescription = $existingS[$fn] ?? '';
       if ($descrption != $slaveDescription) {
-        $m = "MODIFY COLUMN $descrption,";
+        $m = "MODIFY COLUMN $descrption";
+        if ($dryRun) {
+          $m .= ',';
+        }
         $alter[] = $m;
         $previousDesc[$m] = $slaveDescription;
       }
     }
                 
     foreach ($droppedCols as $colName => $cmd) {
-      $alter[] = "DROP COLUMN $colName,";
+      $st = "DROP COLUMN $colName";
+      if ($dryRun) {
+        $st .= ',';
+      }
+      $alter[] = $st;
     }
     
     $alterCount = count($alter);
