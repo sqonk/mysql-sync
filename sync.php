@@ -5,7 +5,7 @@ use sqonk\phext\core\strings;
 use sqonk\phext\context\context;
 
 // Run a synchronisation using a json config file.
-function mysql_sync_with_conf(string $filePath)
+function mysql_sync_with_conf(string $filePath): void
 {
   if (! $filePath or ! strings::ends_with($filePath, '.json')) {
     println("This script should take only 1 argument, being a json file containing both the source and destination database information. Examine the database.sample.json file for an example.");
@@ -21,12 +21,14 @@ function mysql_sync_with_conf(string $filePath)
 
 
 /**
- * Run a synchronsisation using an in-memory configuration object.The object should be in the same structure 
- * as the sample json file.
+ * Run a synchronsisation using an in-memory configuration object. The object should be in 
+ * the same structure as the sample json file.
  * 
  * An array can also be provided, which will be converted to an object internally.
+ * 
+ * @param object|array<mixed> $config
  */
-function mysql_sync($config)
+function mysql_sync(object|array $config): void
 {
   if (is_array($config)) {
     $config = json_decode(json_encode($config));
@@ -36,20 +38,26 @@ function mysql_sync($config)
   println("\n--Source: {$config->source->user}@{$config->source->host}/{$config->source->database}");
 
   $source = new mysqli($config->source->host, $config->source->user, $config->source->password, $config->source->database);
-  if (! $source or $source->connect_error) {
+  if (! $source || $source->connect_error) { // @phpstan-ignore-line
     println("Unable to connect to the source MySQL database.");
+    if ($err = $source->connect_error) { // @phpstan-ignore-line
+      println($err);
+    }
     exit;
   }
 
   println("\n--Dest: {$config->dest->user}@{$config->dest->host}/{$config->dest->database}\n");
 
   $dest = new mysqli($config->dest->host, $config->dest->user, $config->dest->password, $config->dest->database);
-  if (!$source or $source->connect_error) {
+  if (!$source || $source->connect_error) { // @phpstan-ignore-line
     println("Unable to connect to the source MySQL database.");
+    if ($err = $source->connect_error) { // @phpstan-ignore-line
+      println($err);
+    }
     exit;
   }
     
-  $ignoreColumnWidths = (bool)$config->ignoreColumnWidths ?? false;
+  $ignoreColumnWidths = (bool)$config->ignoreColumnWidths;
     
   # ---- Run the sync process, first as a dry run to see what has changed and then ask the user if they want to do it for real.
   println("Displaying differences..");
@@ -72,7 +80,10 @@ function mysql_sync($config)
   }
 }
 
-function describe($db, bool $ignoreColumnWidths)
+/**
+ * @return array<string, mixed> 
+ */
+function describe(mysqli $db, bool $ignoreColumnWidths): array
 {
   $tables = [];
     
@@ -107,12 +118,18 @@ function describe($db, bool $ignoreColumnWidths)
   return $tables;
 }
 
+/**
+ * @param array<mixed> $statements
+ */
 function getCounts(array $statements): int
 {
   return array_sum(array_map(fn ($arr) => count($arr), $statements));
 }
 
-function sync($source, $dest, bool $dryRun, bool $ignoreColumnWidths): array
+/**
+ * @return array{list<string>, list<string>, list<string>}
+ */
+function sync(mysqli $source, mysqli $dest, bool $dryRun, bool $ignoreColumnWidths): array
 {
   $source_tables = describe($source, $ignoreColumnWidths);
   $dest_tables = describe($dest, $ignoreColumnWidths);
