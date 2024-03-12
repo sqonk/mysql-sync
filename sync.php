@@ -86,7 +86,7 @@ function describe($db, bool $ignoreColumnWidths)
       $table = [];
       foreach ($r as $info) {
         $info['Null'] = $info['Null'] == 'YES' ? '' : 'NOT NULL';
-        if (! empty($info['Default'])) {
+        if (isset($info['Default'])) {
           $info['Default'] = 'DEFAULT '.$info['Default'];
         }
                 
