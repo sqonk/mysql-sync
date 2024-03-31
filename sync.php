@@ -37,7 +37,7 @@ function mysql_sync(object|array $config): void
   # --- Connect to both databases.
   println("\n--Source: {$config->source->user}@{$config->source->host}/{$config->source->database}");
 
-  $source = new mysqli($config->source->host, $config->source->user, $config->source->password, $config->source->database);
+  $source = new mysqli($config->source->host, $config->source->user, $config->source->password, $config->source->database, $config->source->port);
   if (! $source || $source->connect_error) { // @phpstan-ignore-line
     println("Unable to connect to the source MySQL database.");
     if ($err = $source->connect_error) { // @phpstan-ignore-line
@@ -48,7 +48,7 @@ function mysql_sync(object|array $config): void
 
   println("\n--Dest: {$config->dest->user}@{$config->dest->host}/{$config->dest->database}\n");
 
-  $dest = new mysqli($config->dest->host, $config->dest->user, $config->dest->password, $config->dest->database);
+  $dest = new mysqli($config->dest->host, $config->dest->user, $config->dest->password, $config->dest->database, $config->dest->port);
   if (!$source || $source->connect_error) { // @phpstan-ignore-line
     println("Unable to connect to the source MySQL database.");
     if ($err = $source->connect_error) { // @phpstan-ignore-line
