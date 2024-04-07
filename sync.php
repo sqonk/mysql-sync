@@ -102,8 +102,7 @@ function describe(mysqli $db, bool $ignoreColumnWidths): array
         }
                 
         $type = $info['Type'] ?? '';
-        $widthFlag = strpos($type, '(');
-        if ($ignoreColumnWidths && $type && $widthFlag !== false) {
+        if ($ignoreColumnWidths && $type && str_contains(haystack:$type, needle:'(')) {
           $info['Type'] = preg_replace("/(\(.+?\))/", "", $type);
         }
                 
