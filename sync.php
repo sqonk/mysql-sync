@@ -1,7 +1,7 @@
 <?php
 
 use sqonk\phext\core\arrays;
-use sqonk\phext\core\strings;
+//use sqonk\phext\core\strings;
 use sqonk\phext\context\context;
 
 // Run a synchronisation using a json config file.
