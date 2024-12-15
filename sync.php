@@ -7,7 +7,7 @@ use sqonk\phext\context\context;
 // Run a synchronisation using a json config file.
 function mysql_sync_with_conf(string $filePath): void
 {
-  if (! $filePath or ! strings::ends_with($filePath, '.json')) {
+  if (! $filePath or ! str_ends_with(haystack: $filePath, needle: '.json')) {
     println("This script should take only 1 argument, being a json file containing both the source and destination database information. Examine the database.sample.json file for an example.");
     exit;
   }
@@ -33,7 +33,7 @@ function mysql_sync(object|array $config): void
   if (is_array($config)) {
     $config = json_decode(json_encode($config));
   }
-    
+
   # --- Connect to both databases.
   println("\n--Source: {$config->source->user}@{$config->source->host}/{$config->source->database}");
 
@@ -56,26 +56,26 @@ function mysql_sync(object|array $config): void
     }
     exit;
   }
-    
+
   $ignoreColumnWidths = (bool)$config->ignoreColumnWidths;
-    
+
   # ---- Run the sync process, first as a dry run to see what has changed and then ask the user if they want to do it for real.
   println("Displaying differences..");
-    
+
   $statements = sync($source, $dest, true, $ignoreColumnWidths);
   if (getCounts($statements) > 0) {
     do {
       $r = ask("Do you want to deploy the changes to the destination, dump the SQL modification commands to a file or cancel? [D]eploy to destination, [s]ave to file, [c]ancel");
     } while (! arrays::contains(['D', 's', 'c'], $r));
-    
+
     if ($r == 'D') {
       context::mysql_transaction($dest)->do(function ($dest) use ($source, $ignoreColumnWidths) {
         sync($source, $dest, false, $ignoreColumnWidths);
       });
     } elseif ($r == 's') {
-      $out = implode("\n\n", array_map(fn ($set) => implode("\n", $set), $statements));
+      $out = implode("\n\n", array_map(fn($set) => implode("\n", $set), $statements));
       $now = date('Y-m-d-h-i');
-      file_put_contents(getcwd()."/database_diff-$now.sql", trim($out));
+      file_put_contents(getcwd() . "/database_diff-$now.sql", trim($out));
     }
   }
 }
@@ -86,26 +86,26 @@ function mysql_sync(object|array $config): void
 function describe(mysqli $db, bool $ignoreColumnWidths): array
 {
   $tables = [];
-    
+
   foreach ($db->query("SHOW TABLES") as $row) {
     $tableName = arrays::first($row) ?? '';
     if (! $tableName) {
       continue;
     }
-        
+
     if ($r = $db->query("DESCRIBE `$tableName`")) {
       $table = [];
       foreach ($r as $info) {
         $info['Null'] = $info['Null'] == 'YES' ? '' : 'NOT NULL';
         if (isset($info['Default'])) {
-          $info['Default'] = 'DEFAULT '.$info['Default'];
+          $info['Default'] = 'DEFAULT ' . $info['Default'];
         }
-                
+
         $type = $info['Type'] ?? '';
-        if ($ignoreColumnWidths && $type && str_contains(haystack:$type, needle:'(')) {
+        if ($ignoreColumnWidths && $type && str_contains(haystack: $type, needle: '(')) {
           $info['Type'] = preg_replace("/(\(.+?\))/", "", $type);
         }
-                
+
         $name = $info['Field'];
         $info['FieldQ'] = "`$name`";
 
@@ -122,7 +122,7 @@ function describe(mysqli $db, bool $ignoreColumnWidths): array
  */
 function getCounts(array $statements): int
 {
-  return array_sum(array_map(fn ($arr) => count($arr), $statements));
+  return array_sum(array_map(fn($arr) => count($arr), $statements));
 }
 
 /**
@@ -136,12 +136,12 @@ function sync(mysqli $source, mysqli $dest, bool $dryRun, bool $ignoreColumnWidt
   $new = array_diff_key($source_tables, $dest_tables);
   $dropped = array_diff_key($dest_tables, $source_tables);
   $existing = array_diff_key($source_tables, $new);
-        
-  
+
+
   $newStatements = [];
   $dropStatements = [];
   $alterStatements = [];
-        
+
   println("\n====== NEW TABLES");
   foreach ($new as $tblName => $cols) {
     $create = $source->query("SHOW CREATE TABLE `$tblName`");
@@ -159,7 +159,7 @@ function sync(mysqli $source, mysqli $dest, bool $dryRun, bool $ignoreColumnWidt
   if (count($newStatements) == 0) {
     println('There are no new tables.');
   }
-    
+
   println("\n===== TABLES TO REMOVE");
   if (count($dropped) > 0) {
     foreach ($dropped as $tblName => $cols) {
@@ -175,7 +175,7 @@ function sync(mysqli $source, mysqli $dest, bool $dryRun, bool $ignoreColumnWidt
   } else {
     println('There are no tables to drop');
   }
-    
+
   println("\n===== EXISTING TABLES");
   foreach ($existing as $tblName => $master_cols) {
     $slave_cols = $dest_tables[$tblName];
@@ -185,7 +185,7 @@ function sync(mysqli $source, mysqli $dest, bool $dryRun, bool $ignoreColumnWidt
     $existingM = array_diff($master_cols, $newCols);
     $existingS = array_diff($slave_cols, $droppedCols);
     $alter = [];
-        
+
     foreach ($newCols as $cmd) {
       $st = "ADD COLUMN $cmd";
       if ($dryRun) {
@@ -193,7 +193,7 @@ function sync(mysqli $source, mysqli $dest, bool $dryRun, bool $ignoreColumnWidt
       }
       $alter[] = $st;
     }
-        
+
     $previousDesc = [];
     foreach ($existingM as $fn => $descrption) {
       $slaveDescription = $existingS[$fn] ?? '';
@@ -206,7 +206,7 @@ function sync(mysqli $source, mysqli $dest, bool $dryRun, bool $ignoreColumnWidt
         $previousDesc[$m] = $slaveDescription;
       }
     }
-                
+
     foreach ($droppedCols as $colName => $cmd) {
       $st = "DROP COLUMN $colName";
       if ($dryRun) {
@@ -214,12 +214,12 @@ function sync(mysqli $source, mysqli $dest, bool $dryRun, bool $ignoreColumnWidt
       }
       $alter[] = $st;
     }
-    
+
     $alterCount = count($alter);
     if ($alterCount > 0) {
-      $last = $alter[$alterCount-1];
-      if (str_ends_with(haystack:$last, needle:',')) {
-        $alter[$alterCount-1] = substr($last, 0, -1);
+      $last = $alter[$alterCount - 1];
+      if (str_ends_with(haystack: $last, needle: ',')) {
+        $alter[$alterCount - 1] = substr($last, 0, -1);
       }
       if ($dryRun) {
         $alterT = "ALTER TABLE `$tblName`";
@@ -234,7 +234,7 @@ function sync(mysqli $source, mysqli $dest, bool $dryRun, bool $ignoreColumnWidt
           }
         }
         println();
-                
+
         println('-------------');
       } else {
         println("adjusting $tblName\n");
@@ -250,11 +250,11 @@ function sync(mysqli $source, mysqli $dest, bool $dryRun, bool $ignoreColumnWidt
       }
     }
   }
-    
+
   if (count($alterStatements) == 0) {
     println('There are no changes between existing tables.');
   }
-    
+
   println();
   return [$newStatements, $dropStatements, $alterStatements];
 }
