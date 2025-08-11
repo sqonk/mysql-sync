@@ -57,24 +57,24 @@ vendor/bin/mysql-sync path/to/my/config-file.json
 Create a new PHP script, load the composer includes and pass your config array accordingly.
 
 ``` php
-require 'vendor/autoload.php'
+require 'vendor/autoload.php';
 
 mysql_sync([
-	"source" => [
-		"host" => "",
-		"user" => "",
-		"password" => "",
-		"database" => "",
-		"port" : "3306"
-	],
-	"dest" => [
-		"host" => "",
-		"user" => "",
-		"password" => "",
-		"database" => "",
-		"port" : "3306"
-	],
-    "ignoreColumnWidths" : false
+    "source" => [
+        "host" => "",
+        "user" => "",
+        "password" => "",
+        "database" => "",
+        "port" => "3306"
+    ],
+    "dest" => [
+        "host" => "",
+        "user" => "",
+        "password" => "",
+        "database" => "",
+        "port" => "3306"
+    ],
+    "ignoreColumnWidths" => false
 ]);
 ```
 
