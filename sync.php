@@ -96,9 +96,12 @@ function describe(mysqli $db, bool $ignoreColumnWidths): array
     if ($r = $db->query("DESCRIBE `$tableName`")) {
       $table = [];
       foreach ($r as $info) {
-        $info['Null'] = $info['Null'] == 'YES' ? '' : 'NOT NULL';
-        if (isset($info['Default'])) {
-          $info['Default'] = 'DEFAULT ' . $info['Default'];
+        $isNullable = $info['Null'] == 'YES';
+        $info['Null'] = $isNullable ? '' : 'NOT NULL';
+
+        // Include DEFAULT if: value is set OR column is nullable (which implies DEFAULT NULL)
+        if (!is_null($info['Default']) || $isNullable) {
+          $info['Default'] = 'DEFAULT ' . ($info['Default'] ?? 'NULL');
         }
 
         $type = $info['Type'] ?? '';
