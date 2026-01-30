@@ -1,8 +1,7 @@
 <?php
 
-use sqonk\phext\core\arrays;
-// use sqonk\phext\core\strings;
 use sqonk\phext\context\context;
+use sqonk\phext\core\arrays;
 
 // Run a synchronisation using a json config file.
 function mysql_sync_with_conf(string $filePath): void
