@@ -1,3 +1,4 @@
 vendor/*
 test.php
 test.json
+composer.lock
