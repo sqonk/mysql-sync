@@ -144,7 +144,7 @@ function sync(mysqli $source, mysqli $dest, bool $dryRun, object $config): array
   $alterStatements = [];
 
   println("\n====== NEW TABLES");
-  foreach ($new as $tblName => $cols) {
+  foreach (array_keys($new) as $tblName) {
     $create = $source->query("SHOW CREATE TABLE `$tblName`");
     if ($create && $r = $create->fetch_assoc()) {
       $create = $r['Create Table'];
@@ -163,7 +163,7 @@ function sync(mysqli $source, mysqli $dest, bool $dryRun, object $config): array
 
   println("\n===== TABLES TO REMOVE");
   if (count($dropped) > 0) {
-    foreach ($dropped as $tblName => $cols) {
+    foreach (array_keys($dropped) as $tblName) {
       $drop = "DROP TABLE `$tblName`";
       $dropStatements[] = $drop;
       if (!$dryRun) {
