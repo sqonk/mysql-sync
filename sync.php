@@ -35,7 +35,8 @@ function mysql_sync(object|array $config): void
   // --- Connect to both databases.
   println("\n--Source: {$config->source->user}@{$config->source->host}/{$config->source->database}");
 
-  $source = new mysqli($config->source->host, $config->source->user, $config->source->password, $config->source->database, $config->source->port);
+  $port = $config->source->port ?? 3306;
+  $source = new mysqli($config->source->host, $config->source->user, $config->source->password, $config->source->database, $port);
   if (!$source || $source->connect_error) {  // @phpstan-ignore-line
     println('Unable to connect to the source MySQL database.');
     if ($err = $source->connect_error) {  // @phpstan-ignore-line
@@ -46,7 +47,8 @@ function mysql_sync(object|array $config): void
 
   println("\n--Dest: {$config->dest->user}@{$config->dest->host}/{$config->dest->database}\n");
 
-  $dest = new mysqli($config->dest->host, $config->dest->user, $config->dest->password, $config->dest->database, $config->dest->port);
+  $port = $config->dest->port ?? 3306;
+  $dest = new mysqli($config->dest->host, $config->dest->user, $config->dest->password, $config->dest->database, $port);
   if (!$source || $source->connect_error) {  // @phpstan-ignore-line
     println('Unable to connect to the source MySQL database.');
     if ($err = $source->connect_error) {  // @phpstan-ignore-line
@@ -55,20 +57,18 @@ function mysql_sync(object|array $config): void
     exit;
   }
 
-  $ignoreColumnWidths = (bool) $config->ignoreColumnWidths;
-
   // ---- Run the sync process, first as a dry run to see what has changed and then ask the user if they want to do it for real.
   println('Displaying differences..');
 
-  $statements = sync($source, $dest, true, $ignoreColumnWidths);
+  $statements = sync($source, $dest, true, $config);
   if (getCounts($statements) > 0) {
     do {
       $r = ask('Do you want to deploy the changes to the destination, dump the SQL modification commands to a file or cancel? [D]eploy to destination, [s]ave to file, [c]ancel');
     } while (!arrays::contains(['D', 's', 'c'], $r));
 
     if ($r == 'D') {
-      context::mysql_transaction($dest)->do(function ($dest) use ($source, $ignoreColumnWidths) {
-        sync($source, $dest, false, $ignoreColumnWidths);
+      context::mysql_transaction($dest)->do(function ($dest) use ($source, $config) {
+        sync($source, $dest, false, $config);
       });
     } elseif ($r == 's') {
       $out = implode("\n\n", array_map(fn($set) => implode("\n", $set), $statements));
@@ -129,8 +129,9 @@ function getCounts(array $statements): int
 /**
  * @return array{list<string>, list<string>, list<string>}
  */
-function sync(mysqli $source, mysqli $dest, bool $dryRun, bool $ignoreColumnWidths): array
+function sync(mysqli $source, mysqli $dest, bool $dryRun, object $config): array
 {
+  $ignoreColumnWidths = (bool) ($config->ignoreColumnWidths ?? false);
   $source_tables = describe($source, $ignoreColumnWidths);
   $dest_tables = describe($dest, $ignoreColumnWidths);
 
