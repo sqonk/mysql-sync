@@ -22,6 +22,7 @@ require_once $vendor;
 
 if (count($argv) < 2) {
   die("You need to specify a json file containing the database configs.".PHP_EOL);
+if (count($argv) < 2) {  // @phpstan-ignore-line
 }
 
 $path = $argv[1]
