@@ -144,10 +144,28 @@ function sync(mysqli $source, mysqli $dest, bool $dryRun, object $config): array
   $alterStatements = [];
 
   println("\n====== NEW TABLES");
+  $omitCollation = (bool) ($config->omitCollate ?? false);
+  $collateSubstitutions = (array) ($config->collateSubstitutions ?? []);
   foreach (array_keys($new) as $tblName) {
     $create = $source->query("SHOW CREATE TABLE `$tblName`");
     if ($create && $r = $create->fetch_assoc()) {
       $create = $r['Create Table'];
+      $substituted = false;
+      foreach ($collateSubstitutions as $subSet) {
+        if (!isset($subSet->from) || !isset($subSet->to)) {
+          throw new Exception("Invalid 'collate' substitution set, either 'from' or 'to' key is missing.");
+        }
+        $pattern = "COLLATE={$subSet->from}";
+        if (stripos(haystack: $create, needle: $pattern) !== false) {
+          $transform = str_replace(search: $subSet->from, replace: $subSet->to, subject: $pattern);
+          $create = str_replace(search: $pattern, replace: $transform, subject: $create);
+          $substituted = true;
+          break;
+        }
+      }
+      if (!$substituted && $omitCollation) {
+        $create = preg_replace('/COLLATE=([a-z0-9_\-]+)\b/i', replacement: '', subject: $create);
+      }
       $newStatements[] = $create;
       if (!$dryRun) {
         println("creating $tblName");

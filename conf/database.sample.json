@@ -1,17 +1,24 @@
 {
-	"source" : {
-		"host" : "",
-		"user" : "",
-		"password" : "",
-		"database" : "",
-    "port" : "3306"
+	"source": {
+		"host": "",
+		"user": "",
+		"password": "",
+		"database": "",
+		"port": 3306
 	},
-	"dest" : {
-		"host" : "",
-		"user" : "",
-		"password" : "",
-		"database" : "",
-    "port" : "3306"
+	"dest": {
+		"host": "",
+		"user": "",
+		"password": "",
+		"database": "",
+		"port": 3306
 	},
-  "ignoreColumnWidths" : false
+	"ignoreColumnWidths": false,
+	"omitCollate": true,
+	"collateSubstitutions": [
+		{
+			"from": "utf8mb3_uca1400_ai_ci",
+			"to": "uft8mb3_general_ci"
+		}
+	]
 }

@@ -1,6 +1,6 @@
 # MySQL Synchroniser
 
-[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.3-8892BF.svg)](https://php.net/)
+[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%208.4-8892BF.svg)](https://php.net/)
 [![License](https://sqonk.com/opensource/license.svg)](license.txt)
 
 The MySQL Synchroniser is a simple script written in PHP that can assist and automate the synchronisation of differences in table structures between two database servers.
@@ -33,18 +33,18 @@ First duplicate the sample json sync file provided the conf folder, call it some
 		"user" : "",
 		"password" : "",
 		"database" : "",
-		"port" : "3306"
+		"port" : 3306
 	},
 	"dest" : {
 		"host" : "",
 		"user" : "",
 		"password" : "",
 		"database" : "",
-		"port" : "3306"
+		"port" : 3306
 	},
-    "ignoreColumnWidths" : false
 }
 ```
+_Note that the above is a baseline config. See the sample json file for a full set of possible options._
 
 Then from your terminal run the following the command:
 
@@ -80,9 +80,38 @@ mysql_sync([
 
 #### Ignoring Column Widths
 
-If you are in a situation in which the configuration of the destination database differs from that of the source environment in such a way that column widths do not match up then you can set the option `ignoreColumnWidths` to true in the sync configuration.
+If you are in a situation in which the configuration of the destination database differs from that of the source environment in such a way that column widths do not match up then you can set the option `ignoreColumnWidths` to true in the top level of your sync configuration.
 
 This will adjust the comparison to ignore column width/length.
+
+#### Dealing with Collation differences on tables
+
+If the source and destination databases have different character encoding sets you can instruct the synchroniser to either remove or substitute encoding sets _when creating new tables in the destination_.
+
+##### Omitting COLLATE syntax entirely
+
+Add a key `omitCollate` to the top level of your json config with a value of `true` or `false`. Setting it to true will remove all `COLLATE=` commands on the end of `CREATE TABLE` lines.
+
+##### Substituting collation
+
+You can also elect to replace occurances of multiple table collations on your source database to another set that is present on the destination database.
+
+To do so, add the following to the top level of your config, replacing the values of 'from' and 'to':
+
+```json
+  collateSubstitutions : [
+  	{
+  	   "from" : "collationOnSource1",
+  	   "to": "collationOnDestination1"
+  	}
+  ]
+```
+
+Because the `collateSubstitutions` is an array, you can add as many substiution sets as required.
+
+##### Using both options together
+
+Setting `omitCollate` to `true` and adding substitution sets will function as expected; Substitutions will be replace occurances and any collations not matching one of the sets will be removed.
 
 ### Process
 
